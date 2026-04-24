@@ -29,7 +29,9 @@ import type { SelectedLink } from './LinkDetails';
 const nodeTypes = { device: DeviceNode, groupOverlay: GroupOverlayNode };
 const edgeTypes = { link: LinkEdge };
 
-const GROUP_PADDING = 36;
+const GROUP_PADDING_X = 22;
+const GROUP_PADDING_Y = 18;
+const GROUP_HEADER_GAP = 22;
 
 export type CanvasHandle = {
   getExportElement: () => HTMLElement | null;
@@ -179,7 +181,9 @@ function CanvasInner({
 }
 
 const DEVICE_W = 220;
-const DEVICE_H = 160;
+// Intentionally lower than the layout reserved height (160) so single-device
+// group overlays don't gain a lot of empty padding below the actual card.
+const DEVICE_H = 128;
 
 function buildGroupOverlayNodes(groups: GroupDef[], deviceNodes: Node[], s: CanvasSettings): Node[] {
   const byId = new Map(deviceNodes.map((n) => [n.id, n]));
@@ -195,10 +199,10 @@ function buildGroupOverlayNodes(groups: GroupDef[], deviceNodes: Node[], s: Canv
           h: (n.height as number | undefined) ?? DEVICE_H,
         }));
       if (!pts.length) return null;
-      const minX = Math.min(...pts.map((p) => p.x)) - GROUP_PADDING;
-      const minY = Math.min(...pts.map((p) => p.y)) - GROUP_PADDING - 12;
-      const maxX = Math.max(...pts.map((p) => p.x + p.w)) + GROUP_PADDING;
-      const maxY = Math.max(...pts.map((p) => p.y + p.h)) + GROUP_PADDING;
+      const minX = Math.min(...pts.map((p) => p.x)) - GROUP_PADDING_X;
+      const minY = Math.min(...pts.map((p) => p.y)) - GROUP_PADDING_Y - GROUP_HEADER_GAP;
+      const maxX = Math.max(...pts.map((p) => p.x + p.w)) + GROUP_PADDING_X;
+      const maxY = Math.max(...pts.map((p) => p.y + p.h)) + GROUP_PADDING_Y;
       const width = maxX - minX;
       const height = maxY - minY;
       const color = g.kind === 'bgp' ? s.bgpColor : s.ospfColor;
