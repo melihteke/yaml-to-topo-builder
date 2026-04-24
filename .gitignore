@@ -4,3 +4,10 @@ out/
 *.tsbuildinfo
 .DS_Store
 .env*
+
+# generated locally, not shipped in repo (CI uses `npm install`)
+package-lock.json
+
+# local export artifacts
+netweave.zip
+*.b64
