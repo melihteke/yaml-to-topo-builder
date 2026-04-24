@@ -1,0 +1,42 @@
+apiVersion: netweave.io/v1
+kind: Topology
+metadata:
+  name: dmz-firewall-sandwich
+  description: Classic sandwich — outside → fw → dmz switches → fw → inside.
+devices:
+  - hostname: edge-rtr
+    type: router
+    interfaces:
+      - { name: Gi0/0, kind: l3, ipv4: 198.51.100.1/30, description: "ISP uplink" }
+      - { name: Gi0/1, kind: l3, ipv4: 10.200.0.1/30 }
+  - hostname: fw-out
+    type: firewall
+    interfaces:
+      - { name: eth0, kind: l3, ipv4: 10.200.0.2/30, description: "outside" }
+      - { name: eth1, kind: l3, ipv4: 10.201.0.1/30, description: "dmz" }
+  - hostname: dmz-sw
+    type: l2-switch
+    interfaces:
+      - { name: Gi1/0/1, kind: trunk }
+      - { name: Gi1/0/2, kind: trunk }
+      - { name: Gi1/0/10, kind: access, vlan: 100 }
+  - hostname: fw-in
+    type: firewall
+    interfaces:
+      - { name: eth0, kind: l3, ipv4: 10.201.0.2/30, description: "dmz" }
+      - { name: eth1, kind: l3, ipv4: 10.10.0.1/24, description: "inside" }
+  - hostname: core-sw
+    type: l3-switch
+    interfaces:
+      - { name: Eth1/1, kind: l3, ipv4: 10.10.0.2/24 }
+      - { name: Vlan10, kind: svi, ipv4: 10.10.10.1/24 }
+  - hostname: web-01
+    type: server
+    interfaces:
+      - { name: eth0, kind: access, vlan: 100 }
+links:
+  - { a: { device: edge-rtr, interface: Gi0/1 }, b: { device: fw-out, interface: eth0 }, type: l3 }
+  - { a: { device: fw-out, interface: eth1 }, b: { device: dmz-sw, interface: Gi1/0/1 }, type: trunk }
+  - { a: { device: dmz-sw, interface: Gi1/0/2 }, b: { device: fw-in, interface: eth0 }, type: trunk }
+  - { a: { device: fw-in, interface: eth1 }, b: { device: core-sw, interface: Eth1/1 }, type: l3 }
+  - { a: { device: dmz-sw, interface: Gi1/0/10 }, b: { device: web-01, interface: eth0 }, type: access }
